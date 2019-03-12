@@ -1,5 +1,5 @@
-variable "create_lc" {
-  description = "Whether to create launch configuration"
+variable "create_lt" {
+  description = "Whether to create launch template"
   default     = true
 }
 
@@ -48,8 +48,8 @@ variable "initial_lifecycle_hook_role_arn" {
   default     = ""
 }
 
-variable "recreate_asg_when_lc_changes" {
-  description = "Whether to recreate an autoscaling group when launch configuration changes"
+variable "recreate_asg_when_lt_changes" {
+  description = "Whether to recreate an autoscaling group when launch template changes"
   default     = false
 }
 
@@ -57,8 +57,8 @@ variable "name" {
   description = "Creates a unique name beginning with the specified prefix"
 }
 
-variable "lc_name" {
-  description = "Creates a unique name for launch configuration beginning with the specified prefix"
+variable "lt_name" {
+  description = "Creates a unique name for launch template beginning with the specified prefix"
   default     = ""
 }
 
@@ -67,20 +67,21 @@ variable "asg_name" {
   default     = ""
 }
 
-variable "launch_configuration" {
-  description = "The name of the launch configuration to use (if it is created outside of this module)"
+variable "launch_template" {
+  description = "The name of the launch template to use (if it is created outside of this module)"
   default     = ""
 }
 
-# Launch configuration
+# Launch template
 variable "image_id" {
   description = "The EC2 image ID to launch"
   default     = ""
 }
 
-variable "instance_type" {
+variable "instance_types" {
   description = "The size of instance to launch"
-  default     = ""
+  type        = "list"
+  default     = []
 }
 
 variable "iam_instance_profile" {
@@ -94,7 +95,7 @@ variable "key_name" {
 }
 
 variable "security_groups" {
-  description = "A list of security group IDs to assign to the launch configuration"
+  description = "A list of security group IDs to assign to the launch template"
   type        = "list"
   default     = []
 }
@@ -119,28 +120,16 @@ variable "ebs_optimized" {
   default     = false
 }
 
-variable "root_block_device" {
-  description = "Customize details about the root block device of the instance"
+variable "block_device_mappings" {
+  description = "Mappings of block devices, see https://www.terraform.io/docs/providers/aws/r/launch_template.html#block-devices"
   type        = "list"
   default     = []
 }
 
-variable "ebs_block_device" {
-  description = "Additional EBS block devices to attach to the instance"
-  type        = "list"
-  default     = []
-}
-
-variable "ephemeral_block_device" {
-  description = "Customize Ephemeral (also known as 'Instance Store') volumes on the instance"
-  type        = "list"
-  default     = []
-}
-
-variable "spot_price" {
-  description = "The price to use for reserving spot instances"
-  default     = ""
-}
+//variable "spot_price" {
+//  description = "The price to use for reserving spot instances"
+//  default     = ""
+//}
 
 variable "placement_tenancy" {
   description = "The tenancy of the instance. Valid values are 'default' or 'dedicated'"
@@ -260,4 +249,9 @@ variable "wait_for_elb_capacity" {
 variable "protect_from_scale_in" {
   description = "Allows setting instance protection. The autoscaling group will not select instances with this setting for termination during scale in events."
   default     = false
+}
+
+variable "service_linked_role_arn" {
+  description = "The ARN of the service-linked role that the ASG will use to call other AWS services"
+  default     = ""
 }

@@ -1,6 +1,6 @@
 locals {
-  this_launch_configuration_id   = "${var.launch_configuration == "" && var.create_lc ? element(concat(aws_launch_configuration.this.*.id, list("")), 0) : var.launch_configuration}"
-  this_launch_configuration_name = "${var.launch_configuration == "" && var.create_lc ? element(concat(aws_launch_configuration.this.*.name, list("")), 0) : ""}"
+  this_launch_template_id   = "${var.launch_template == "" && var.create_lt ? element(concat(aws_launch_template.this.*.id, list("")), 0) : var.launch_template}"
+  this_launch_template_name = "${var.launch_template == "" && var.create_lt ? element(concat(aws_launch_template.this.*.name, list("")), 0) : ""}"
 
   this_autoscaling_group_id                        = "${element(concat(coalescelist(aws_autoscaling_group.this.*.id, aws_autoscaling_group.this_with_initial_lifecycle_hook.*.id), list("")), 0)}"
   this_autoscaling_group_name                      = "${element(concat(coalescelist(aws_autoscaling_group.this.*.name, aws_autoscaling_group.this_with_initial_lifecycle_hook.*.name), list("")), 0)}"
@@ -13,14 +13,14 @@ locals {
   this_autoscaling_group_health_check_type         = "${element(concat(coalescelist(aws_autoscaling_group.this.*.health_check_type, aws_autoscaling_group.this_with_initial_lifecycle_hook.*.health_check_type), list("")), 0)}"
 }
 
-output "this_launch_configuration_id" {
-  description = "The ID of the launch configuration"
-  value       = "${local.this_launch_configuration_id}"
+output "this_launch_template_id" {
+  description = "The ID of the launch template"
+  value       = "${local.this_launch_template_id}"
 }
 
-output "this_launch_configuration_name" {
-  description = "The name of the launch configuration"
-  value       = "${local.this_launch_configuration_name}"
+output "this_launch_template_name" {
+  description = "The name of the launch template"
+  value       = "${local.this_launch_template_name}"
 }
 
 output "this_autoscaling_group_id" {

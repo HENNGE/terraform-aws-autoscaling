@@ -76,6 +76,13 @@ resource "aws_autoscaling_group" "this" {
 
       override = ["${local.instance_types}"]
     }
+
+    "instances_distribution" {
+      on_demand_base_capacity                  = "${var.on_demand_base_capacity}"
+      on_demand_percentage_above_base_capacity = "${var.on_demand_percentage_above_base_capacity}"
+      spot_instance_pools                      = "${var.spot_instance_pools}"
+      spot_max_price                           = "${var.spot_price}"
+    }
   }
 
   tags = ["${concat(
@@ -127,6 +134,13 @@ resource "aws_autoscaling_group" "this_with_initial_lifecycle_hook" {
       }
 
       override = ["${local.instance_types}"]
+    }
+
+    "instances_distribution" {
+      on_demand_base_capacity                  = "${var.on_demand_base_capacity}"
+      on_demand_percentage_above_base_capacity = "${var.on_demand_percentage_above_base_capacity}"
+      spot_instance_pools                      = "${var.spot_instance_pools}"
+      spot_max_price                           = "${var.spot_price}"
     }
   }
 

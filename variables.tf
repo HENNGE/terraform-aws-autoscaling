@@ -126,11 +126,6 @@ variable "block_device_mappings" {
   default     = []
 }
 
-//variable "spot_price" {
-//  description = "The price to use for reserving spot instances"
-//  default     = ""
-//}
-
 variable "placement_tenancy" {
   description = "The tenancy of the instance. Valid values are 'default' or 'dedicated'"
   default     = "default"
@@ -253,5 +248,25 @@ variable "protect_from_scale_in" {
 
 variable "service_linked_role_arn" {
   description = "The ARN of the service-linked role that the ASG will use to call other AWS services"
+  default     = ""
+}
+
+variable "on_demand_base_capacity" {
+  description = "Absolute minimum amount of desired capacity that must be fulfilled by on-demand instances"
+  default     = 0
+}
+
+variable "on_demand_percentage_above_base_capacity" {
+  description = "Percentage split between on-demand and Spot instances above the base on-demand capacity."
+  default     = 100
+}
+
+variable "spot_instance_pools" {
+  description = "Number of Spot pools per availability zone to allocate capacity. EC2 Auto Scaling selects the cheapest Spot pools and evenly allocates Spot capacity across the number of Spot pools that you specify. Diversifies your Spot capacity across multiple instance types to find the best pricing."
+  default     = 1
+}
+
+variable "spot_price" {
+  description = "The price to use for reserving spot instances"
   default     = ""
 }

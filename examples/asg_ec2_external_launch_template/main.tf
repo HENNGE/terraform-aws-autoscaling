@@ -41,13 +41,12 @@ data "aws_ami" "amazon_linux" {
 }
 
 #######################
-# Launch configuration
+# Launch template
 # (сreating it outside of the module for example)
 #######################
-resource "aws_launch_configuration" "this" {
-  name_prefix   = "my-launch-configuration-"
-  image_id      = "${data.aws_ami.amazon_linux.id}"
-  instance_type = "t2.micro"
+resource "aws_launch_template" "this" {
+  name_prefix = "my-launch-template-"
+  image_id    = "${data.aws_ami.amazon_linux.id}"
 
   lifecycle {
     create_before_destroy = true
@@ -57,14 +56,14 @@ resource "aws_launch_configuration" "this" {
 module "example" {
   source = "../../"
 
-  name = "example-with-ec2-external-lc"
+  name = "example-with-ec2-external-lt"
 
-  # Use of existing launch configuration (created outside of this module)
-  launch_configuration = "${aws_launch_configuration.this.name}"
+  # Use of existing launch template (created outside of this module)
+  launch_template = "${aws_launch_template.this.name}"
 
-  create_lc = false
+  create_lt = false
 
-  recreate_asg_when_lc_changes = true
+  recreate_asg_when_lt_changes = true
 
   # Auto scaling group
   asg_name                  = "example-asg"
@@ -92,4 +91,6 @@ module "example" {
     extra_tag1 = "extra_value1"
     extra_tag2 = "extra_value2"
   }
+
+  instance_types = ["t2.micro", "t3.micro"]
 }

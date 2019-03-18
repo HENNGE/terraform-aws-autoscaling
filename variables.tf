@@ -79,7 +79,7 @@ variable "image_id" {
 }
 
 variable "instance_types" {
-  description = "The size of instance to launch"
+  description = "The size of instance to launch, minimum 2 types must be specified."
   type        = "list"
   default     = []
 }

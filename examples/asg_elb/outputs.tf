@@ -1,7 +1,7 @@
 # Launch configuration
-output "this_launch_configuration_id" {
-  description = "The ID of the launch configuration"
-  value       = "${module.example_asg.this_launch_configuration_id}"
+output "this_launch_template_id" {
+  description = "The ID of the launch template"
+  value       = "${module.example_asg.this_launch_template_id}"
 }
 
 # Autoscaling group

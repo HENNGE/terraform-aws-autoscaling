@@ -17,16 +17,17 @@ data "aws_vpc" "default" {
 }
 
 data "aws_subnet_ids" "all" {
-  vpc_id = "${data.aws_vpc.default.id}"
+  vpc_id = data.aws_vpc.default.id
 }
 
 data "aws_security_group" "default" {
-  vpc_id = "${data.aws_vpc.default.id}"
+  vpc_id = data.aws_vpc.default.id
   name   = "default"
 }
 
 data "aws_ami" "amazon_linux" {
   most_recent = true
+  owners      = ["137112412989"] # Amazon
 
   filter {
     name = "name"
@@ -72,9 +73,12 @@ EOF
   # create_lt = false # disables creation of launch template
   lt_name = "example-lt"
 
-  image_id                     = "${data.aws_ami.amazon_linux.id}"
-  instance_types               = ["t2.micro", "t3.micro"]
-  security_groups              = ["${data.aws_security_group.default.id}"]
+  image_id = data.aws_ami.amazon_linux.id
+  instance_types = [
+    { instance_type = "t2.micro" },
+    { instance_type = "t3.micro" }
+  ]
+  security_groups              = [data.aws_security_group.default.id]
   associate_public_ip_address  = true
   recreate_asg_when_lt_changes = true
 
@@ -105,7 +109,7 @@ EOF
 
   # Auto scaling group
   asg_name                  = "example-asg"
-  vpc_zone_identifier       = ["${data.aws_subnet_ids.all.ids}"]
+  vpc_zone_identifier       = data.aws_subnet_ids.all.ids
   health_check_type         = "EC2"
   min_size                  = 0
   max_size                  = 1

@@ -10,16 +10,17 @@ data "aws_vpc" "default" {
 }
 
 data "aws_subnet_ids" "all" {
-  vpc_id = "${data.aws_vpc.default.id}"
+  vpc_id = data.aws_vpc.default.id
 }
 
 data "aws_security_group" "default" {
-  vpc_id = "${data.aws_vpc.default.id}"
+  vpc_id = data.aws_vpc.default.id
   name   = "default"
 }
 
 data "aws_ami" "amazon_linux" {
   most_recent = true
+  owners      = ["137112412989"] # Amazon
 
   filter {
     name = "name"
@@ -52,10 +53,13 @@ module "example_asg" {
   # create_lt = false # disables creation of launch template
   lt_name = "example-lt"
 
-  image_id        = "${data.aws_ami.amazon_linux.id}"
-  instance_types  = ["t2.micro", "t3.micro"]
-  security_groups = ["${data.aws_security_group.default.id}"]
-  load_balancers  = ["${module.elb.this_elb_id}"]
+  image_id = data.aws_ami.amazon_linux.id
+  instance_types = [
+    { instance_type = "t2.micro" },
+    { instance_type = "t3.micro" }
+  ]
+  security_groups = [data.aws_security_group.default.id]
+  load_balancers  = [module.elb.this_elb_id]
 
   block_device_mappings = [
     {
@@ -84,7 +88,7 @@ module "example_asg" {
 
   # Auto scaling group
   asg_name                  = "example-asg"
-  vpc_zone_identifier       = ["${data.aws_subnet_ids.all.ids}"]
+  vpc_zone_identifier       = data.aws_subnet_ids.all.ids
   health_check_type         = "EC2"
   min_size                  = 0
   max_size                  = 1
@@ -113,8 +117,8 @@ module "elb" {
 
   name = "elb-example"
 
-  subnets         = ["${data.aws_subnet_ids.all.ids}"]
-  security_groups = ["${data.aws_security_group.default.id}"]
+  subnets         = data.aws_subnet_ids.all.ids
+  security_groups = [data.aws_security_group.default.id]
   internal        = false
 
   listener = [
@@ -126,15 +130,13 @@ module "elb" {
     },
   ]
 
-  health_check = [
-    {
-      target              = "HTTP:80/"
-      interval            = 30
-      healthy_threshold   = 2
-      unhealthy_threshold = 2
-      timeout             = 5
-    },
-  ]
+  health_check = {
+    target              = "HTTP:80/"
+    interval            = 30
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+  }
 
   tags = {
     Owner       = "user"

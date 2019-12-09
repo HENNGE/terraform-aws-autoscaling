@@ -9,6 +9,16 @@ These types of resources are supported:
 
 This module will require more than 1 instance type. Suitable to back ECS Cluster.
 
+## Terraform versions
+
+Terraform 0.12. Pin module version to `~> v2.0`. Submit pull-requests to `master` branch.
+
+Terraform 0.11. Pin module version to `~> v1.0`. Submit pull-requests to `terraform011` branch.
+
+## Amazon Documentations
+* [Autoscaling Group with Multiple Instance Types and Purchase Options](https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html)
+* [Autoscaling Group Instance Weighting](https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-instance-weighting.html)
+
 ## Usage
 
 ```hcl
@@ -76,7 +86,28 @@ module "asg" {
     extra_tag2 = "extra_value2"
   }
   
-  instance_types = ["t2.micro", "t3.micro", "t2.small", "t3.small", "t2.medium"]
+  instance_types = [
+    {
+      instance_type = "t2.micro",
+      weighted_capacity = 1,
+    },
+    {
+      instance_type = "t3.micro",
+      weighted_capacity = 1,
+    },
+    {
+      instance_type = "t2.small",
+      weighted_capacity = 2,
+    },
+    {
+      instance_type = "t3.small",
+      weighted_capacity = 2,
+    },
+    {
+      instance_type = "t2.medium",
+      weighted_capacity = 4,
+    },
+  ]
 
   on_demand_base_capacity                  = 0
   on_demand_percentage_above_base_capacity = 100
@@ -129,18 +160,18 @@ There are two ways to specify tags for auto-scaling group in this module - `tags
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 | asg\_name | Creates a unique name for autoscaling group beginning with the specified prefix | string | `""` | no |
-| associate\_public\_ip\_address | Associate a public ip address with an instance in a VPC | string | `"false"` | no |
-| block\_device\_mappings | Mappings of block devices, see https://www.terraform.io/docs/providers/aws/r/launch_template.html#block-devices | list | `<list>` | no |
-| create\_asg | Whether to create autoscaling group | string | `"true"` | no |
-| create\_asg\_with\_initial\_lifecycle\_hook | Create an ASG with initial lifecycle hook | string | `"false"` | no |
-| create\_lt | Whether to create launch template | string | `"true"` | no |
-| default\_cooldown | The amount of time, in seconds, after a scaling activity completes before another scaling activity can start | string | `"300"` | no |
-| desired\_capacity | The number of Amazon EC2 instances that should be running in the group | string | n/a | yes |
+| associate\_public\_ip\_address | Associate a public ip address with an instance in a VPC | bool | `"false"` | no |
+| block\_device\_mappings | Mappings of block devices, see https://www.terraform.io/docs/providers/aws/r/launch_template.html#block-devices | list(any) | `[ {} ]` | no |
+| create\_asg | Whether to create autoscaling group | bool | `"true"` | no |
+| create\_asg\_with\_initial\_lifecycle\_hook | Create an ASG with initial lifecycle hook | bool | `"false"` | no |
+| create\_lt | Whether to create launch template | bool | `"true"` | no |
+| default\_cooldown | The amount of time, in seconds, after a scaling activity completes before another scaling activity can start | number | `"300"` | no |
+| desired\_capacity | The number of Amazon EC2 instances that should be running in the group | number | n/a | yes |
 | ebs\_optimized | If true, the launched EC2 instance will be EBS-optimized | string | `"false"` | no |
-| enable\_monitoring | Enables/disables detailed monitoring. This is enabled by default. | string | `"true"` | no |
-| enabled\_metrics | A list of metrics to collect. The allowed values are GroupMinSize, GroupMaxSize, GroupDesiredCapacity, GroupInServiceInstances, GroupPendingInstances, GroupStandbyInstances, GroupTerminatingInstances, GroupTotalInstances | list | `<list>` | no |
-| force\_delete | Allows deleting the autoscaling group without waiting for all instances in the pool to terminate. You can force an autoscaling group to delete even if it's in the process of scaling a resource. Normally, Terraform drains all the instances before deleting the group. This bypasses that behavior and potentially leaves resources dangling | string | `"false"` | no |
-| health\_check\_grace\_period | Time (in seconds) after instance comes into service before checking health | string | `"300"` | no |
+| enable\_monitoring | Enables/disables detailed monitoring. This is enabled by default. | bool | `"true"` | no |
+| enabled\_metrics | A list of metrics to collect. The allowed values are GroupMinSize, GroupMaxSize, GroupDesiredCapacity, GroupInServiceInstances, GroupPendingInstances, GroupStandbyInstances, GroupTerminatingInstances, GroupTotalInstances | list(string) | `[ "GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity", "GroupInServiceInstances", "GroupPendingInstances", "GroupStandbyInstances", "GroupTerminatingInstances", "GroupTotalInstances" ]` | no |
+| force\_delete | Allows deleting the autoscaling group without waiting for all instances in the pool to terminate. You can force an autoscaling group to delete even if it's in the process of scaling a resource. Normally, Terraform drains all the instances before deleting the group. This bypasses that behavior and potentially leaves resources dangling | bool | `"false"` | no |
+| health\_check\_grace\_period | Time (in seconds) after instance comes into service before checking health | number | `"300"` | no |
 | health\_check\_type | Controls how health checking is done. Values are - EC2 and ELB | string | n/a | yes |
 | iam\_instance\_profile | The IAM instance profile to associate with launched instances | string | `""` | no |
 | image\_id | The EC2 image ID to launch | string | `""` | no |
@@ -151,49 +182,54 @@ There are two ways to specify tags for auto-scaling group in this module - `tags
 | initial\_lifecycle\_hook\_notification\_metadata | Contains additional information that you want to include any time Auto Scaling sends a message to the notification target | string | `""` | no |
 | initial\_lifecycle\_hook\_notification\_target\_arn | The ARN of the notification target that Auto Scaling will use to notify you when an instance is in the transition state for the lifecycle hook. This ARN target can be either an SQS queue or an SNS topic | string | `""` | no |
 | initial\_lifecycle\_hook\_role\_arn | The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target | string | `""` | no |
-| instance\_types | The size of instance to launch, minimum 2 types must be specified. | list | `<list>` | no |
+| instance\_types | Instance types to launch, minimum 2 types must be specified. List of Map of 'instance_type'(required) and 'weighted_capacity'(optional). | list(map(string)) | `[ {} ]` | no |
 | key\_name | The key name that should be used for the instance | string | `""` | no |
 | launch\_template | The name of the launch template to use (if it is created outside of this module) | string | `""` | no |
-| load\_balancers | A list of elastic load balancer names to add to the autoscaling group names | list | `<list>` | no |
+| load\_balancers | A list of elastic load balancer names to add to the autoscaling group names | list(string) | `[]` | no |
 | lt\_name | Creates a unique name for launch template beginning with the specified prefix | string | `""` | no |
-| max\_size | The maximum size of the auto scale group | string | n/a | yes |
+| max\_size | The maximum size of the auto scale group | number | n/a | yes |
 | metrics\_granularity | The granularity to associate with the metrics to collect. The only valid value is 1Minute | string | `"1Minute"` | no |
-| min\_elb\_capacity | Setting this causes Terraform to wait for this number of instances to show up healthy in the ELB only on creation. Updates will not wait on ELB instance number changes | string | `"0"` | no |
-| min\_size | The minimum size of the auto scale group | string | n/a | yes |
+| min\_elb\_capacity | Setting this causes Terraform to wait for this number of instances to show up healthy in the ELB only on creation. Updates will not wait on ELB instance number changes | number | `"0"` | no |
+| min\_size | The minimum size of the auto scale group | number | n/a | yes |
 | name | Creates a unique name beginning with the specified prefix | string | n/a | yes |
-| on\_demand\_base\_capacity | Absolute minimum amount of desired capacity that must be fulfilled by on-demand instances | string | `"0"` | no |
-| on\_demand\_percentage\_above\_base\_capacity | Percentage split between on-demand and Spot instances above the base on-demand capacity. | string | `"100"` | no |
+| on\_demand\_base\_capacity | Absolute minimum amount of desired capacity that must be fulfilled by on-demand instances | number | `"0"` | no |
+| on\_demand\_percentage\_above\_base\_capacity | Percentage split between on-demand and Spot instances above the base on-demand capacity. | number | `"100"` | no |
 | placement\_group | The name of the placement group into which you'll launch your instances, if any | string | `""` | no |
 | placement\_tenancy | The tenancy of the instance. Valid values are 'default' or 'dedicated' | string | `"default"` | no |
-| protect\_from\_scale\_in | Allows setting instance protection. The autoscaling group will not select instances with this setting for termination during scale in events. | string | `"false"` | no |
-| recreate\_asg\_when\_lt\_changes | Whether to recreate an autoscaling group when launch template changes | string | `"false"` | no |
-| security\_groups | A list of security group IDs to assign to the launch template | list | `<list>` | no |
+| protect\_from\_scale\_in | Allows setting instance protection. The autoscaling group will not select instances with this setting for termination during scale in events. | bool | `"false"` | no |
+| recreate\_asg\_when\_lt\_changes | Whether to recreate an autoscaling group when launch template changes | bool | `"false"` | no |
+| security\_groups | A list of security group IDs to assign to the launch template | list(string) | `[]` | no |
 | service\_linked\_role\_arn | The ARN of the service-linked role that the ASG will use to call other AWS services | string | `""` | no |
-| spot\_instance\_pools | Number of Spot pools per availability zone to allocate capacity. EC2 Auto Scaling selects the cheapest Spot pools and evenly allocates Spot capacity across the number of Spot pools that you specify. Diversifies your Spot capacity across multiple instance types to find the best pricing. | string | `"1"` | no |
+| spot\_allocation\_strategy | How to allocate capacity across the Spot pools. Valid values: 'lowest-price', 'capacity-optimized'. | string | `"capacity-optimized"` | no |
+| spot\_instance\_pools | Number of Spot pools per availability zone to allocate capacity. EC2 Auto Scaling selects the cheapest Spot pools and evenly allocates Spot capacity across the number of Spot pools that you specify. Diversifies your Spot capacity across multiple instance types to find the best pricing. | number | `"2"` | no |
 | spot\_price | The price to use for reserving spot instances | string | `""` | no |
-| suspended\_processes | A list of processes to suspend for the AutoScaling Group. The allowed values are Launch, Terminate, HealthCheck, ReplaceUnhealthy, AZRebalance, AlarmNotification, ScheduledActions, AddToLoadBalancer. Note that if you suspend either the Launch or Terminate process types, it can prevent your autoscaling group from functioning properly. | list | `<list>` | no |
-| tags | A list of tag blocks. Each element should have keys named key, value, and propagate_at_launch. | list | `<list>` | no |
-| tags\_as\_map | A map of tags and values in the same format as other resources accept. This will be converted into the non-standard format that the aws_autoscaling_group requires. | map | `<map>` | no |
-| target\_group\_arns | A list of aws_alb_target_group ARNs, for use with Application Load Balancing | list | `<list>` | no |
-| termination\_policies | A list of policies to decide how the instances in the auto scale group should be terminated. The allowed values are OldestInstance, NewestInstance, OldestLaunchConfiguration, ClosestToNextInstanceHour, Default | list | `<list>` | no |
+| suspended\_processes | A list of processes to suspend for the AutoScaling Group. The allowed values are Launch, Terminate, HealthCheck, ReplaceUnhealthy, AZRebalance, AlarmNotification, ScheduledActions, AddToLoadBalancer. Note that if you suspend either the Launch or Terminate process types, it can prevent your autoscaling group from functioning properly. | list(string) | `[]` | no |
+| tags | A list of tag blocks. Each element should have keys named key, value, and propagate_at_launch. | list(map(string)) | `[]` | no |
+| tags\_as\_map | A map of tags and values in the same format as other resources accept. This will be converted into the non-standard format that the aws_autoscaling_group requires. | map(string) | `{}` | no |
+| target\_group\_arns | A list of aws_alb_target_group ARNs, for use with Application Load Balancing | list(string) | `[]` | no |
+| termination\_policies | A list of policies to decide how the instances in the auto scale group should be terminated. The allowed values are OldestInstance, NewestInstance, OldestLaunchConfiguration, ClosestToNextInstanceHour, Default | list(string) | `[ "Default" ]` | no |
 | user\_data | The user data to provide when launching the instance | string | `" "` | no |
-| vpc\_zone\_identifier | A list of subnet IDs to launch resources in | list | n/a | yes |
+| vpc\_zone\_identifier | A list of subnet IDs to launch resources in | list(string) | n/a | yes |
 | wait\_for\_capacity\_timeout | A maximum duration that Terraform should wait for ASG instances to be healthy before timing out. (See also Waiting for Capacity below.) Setting this to '0' causes Terraform to skip all Capacity Waiting behavior. | string | `"10m"` | no |
-| wait\_for\_elb\_capacity | Setting this will cause Terraform to wait for exactly this number of healthy instances in all attached load balancers on both create and update operations. Takes precedence over min_elb_capacity behavior. | string | `"false"` | no |
+| wait\_for\_elb\_capacity | Setting this will cause Terraform to wait for exactly this number of healthy instances in all attached load balancers on both create and update operations. Takes precedence over min_elb_capacity behavior. | number | `"null"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | this\_autoscaling\_group\_arn | The ARN for this AutoScaling Group |
+| this\_autoscaling\_group\_availability\_zones | The availability zones of the autoscale group |
 | this\_autoscaling\_group\_default\_cooldown | Time between a scaling activity and the succeeding scaling activity |
 | this\_autoscaling\_group\_desired\_capacity | The number of Amazon EC2 instances that should be running in the group |
 | this\_autoscaling\_group\_health\_check\_grace\_period | Time after instance comes into service before checking health |
 | this\_autoscaling\_group\_health\_check\_type | EC2 or ELB. Controls how health checking is done |
 | this\_autoscaling\_group\_id | The autoscaling group id |
+| this\_autoscaling\_group\_load\_balancers | The load balancer names associated with the autoscaling group |
 | this\_autoscaling\_group\_max\_size | The maximum size of the autoscale group |
 | this\_autoscaling\_group\_min\_size | The minimum size of the autoscale group |
 | this\_autoscaling\_group\_name | The autoscaling group name |
+| this\_autoscaling\_group\_target\_group\_arns | List of Target Group ARNs that apply to this AutoScaling Group |
+| this\_autoscaling\_group\_vpc\_zone\_identifier | The VPC zone identifier |
 | this\_launch\_template\_id | The ID of the launch template |
 | this\_launch\_template\_name | The name of the launch template |
 

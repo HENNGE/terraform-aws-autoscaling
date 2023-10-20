@@ -135,17 +135,24 @@ resource "aws_autoscaling_group" "this" {
     }
   }
 
-  tags = concat(
-    [
-      {
-        key                 = "Name"
-        value               = var.name
-        propagate_at_launch = true
-      },
-    ],
-    var.tags,
-    local.tags_asg_format,
-  )
+  dynamic "tag" {
+    for_each = concat(
+      [
+        {
+          key                 = "Name"
+          value               = var.name
+          propagate_at_launch = true
+        },
+      ],
+      var.tags,
+      local.tags_asg_format,
+    )
+    content {
+      key                 = tag.value.key
+      propagate_at_launch = tag.value.propagate_at_launch
+      value               = tag.value.value
+    }
+  }
 
   dynamic "instance_refresh" {
     for_each = var.asg_instance_refresh_strategy != null ? [1] : []
@@ -248,17 +255,24 @@ resource "aws_autoscaling_group" "this_ignore_desired_capacity_changes" {
     }
   }
 
-  tags = concat(
-    [
-      {
-        key                 = "Name"
-        value               = var.name
-        propagate_at_launch = true
-      },
-    ],
-    var.tags,
-    local.tags_asg_format,
-  )
+  dynamic "tag" {
+    for_each = concat(
+      [
+        {
+          key                 = "Name"
+          value               = var.name
+          propagate_at_launch = true
+        },
+      ],
+      var.tags,
+      local.tags_asg_format,
+    )
+    content {
+      key                 = tag.value.key
+      propagate_at_launch = tag.value.propagate_at_launch
+      value               = tag.value.value
+    }
+  }
 
   dynamic "instance_refresh" {
     for_each = var.asg_instance_refresh_strategy != null ? [1] : []

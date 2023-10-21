@@ -2,7 +2,6 @@ provider "aws" {
   region = "eu-west-1"
 
   # Make it faster by skipping something
-  skip_get_ec2_platforms      = true
   skip_metadata_api_check     = true
   skip_region_validation      = true
   skip_credentials_validation = true
@@ -16,8 +15,11 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "all" {
-  vpc_id = data.aws_vpc.default.id
+data "aws_subnets" "all" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 data "aws_security_group" "default" {
@@ -107,7 +109,7 @@ module "example" {
 
   # Auto scaling group
   asg_name                  = "example-asg"
-  vpc_zone_identifier       = data.aws_subnet_ids.all.ids
+  vpc_zone_identifier       = data.aws_subnets.all.ids
   health_check_type         = "EC2"
   min_size                  = 0
   max_size                  = 1
